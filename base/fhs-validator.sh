@@ -1,35 +1,47 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
+# Script to validate the adherence to the FHS and our standards for a package
 
 set -euo pipefail
 
+RETVAL=0
+
+check_dir() {
+    local ROOTDIR="$1"
+    local ALLOWED_DIRS="$2"
+
+    for DIR in "$ROOTDIR"/*; do
+        # Empty directory, no matches.
+        [ "$DIR" = "$ROOTDIR/*" ] && break
+        local RELATIVE_DIR=$(basename "$DIR")
+
+        if ! echo "${ALLOWED_DIRS}" | grep -wq "${RELATIVE_DIR}"; then
+            [ -d "${DIR}" ] && echo "Package validator: ${DIR} is not an allowed directory" || echo "Package validator: ${DIR} is not an allowed file"
+            RETVAL=1
+        fi
+    done
+}
+
 ROOTDIR="${1:-/rootfs}"
 
-DENYLIST_PATHS="lib64 lib bin sbin usr/lib64 usr/sbin"
-
-# make sure there's are no symlinks from DENYLIST_PATHS
-for DENYLIST_PATH in ${DENYLIST_PATHS}; do
-    # first check if the the file exists
-    if [[ -e "${ROOTDIR}/${DENYLIST_PATH}" ]]; then
-        if [[ -L "${ROOTDIR}/${DENYLIST_PATH}" ]]; then
-            echo "Found symlink ${ROOTDIR}/${DENYLIST_PATH} which is not allowed"
-            exit 1
-        fi
-
-        if [[ -d "${ROOTDIR}/${DENYLIST_PATH}" ]]; then
-            echo "Found directory ${ROOTDIR}/${DENYLIST_PATH} which is not allowed"
-            exit 1
-        fi
-    fi
-done
-
 # Test for extra files/directories
-ALLOWED_DIRS="usr etc bin sbin lib lib64 dev proc sys opt run var root tmp home"
+# bin, lib and other directories moved to /usr are not allowed
+ALLOWED_DIRS="usr etc dev proc sys opt run var root tmp home"
+check_dir "$ROOTDIR" "$ALLOWED_DIRS"
+echo "Validated /"
 
-find "${ROOTDIR}" -mindepth 1 -maxdepth 1 | while read -r DIR; do
-    RELATIVE_DIR=$(basename "${DIR}")
+# No need for this test in pkgs which only have files under /etc for example
+[ ! -d "${ROOTDIR}/usr" ] && exit $RETVAL
 
-    if ! echo "${ALLOWED_DIRS}" | grep -q "${RELATIVE_DIR}"; then
-        [[  -d "${DIR}" ]] && echo "${DIR} is not an allowed directory" || echo "${DIR} is not an allowed file"
-        exit 1
-    fi
+# Test for extra files/directories in /usr
+# lib64 and sbin are not allowed
+ALLOWED_USR_DIRS="bin lib share libexec include etc local src var"
+check_dir "$ROOTDIR/usr" "$ALLOWED_USR_DIRS"
+
+# Do not install man pages and locale info for optimal image size
+for DIR in $ROOTDIR/usr/man $ROOTDIR/usr/share/man $ROOTDIR/usr/local/man $ROOTDIR/usr/local/share/man \
+           $ROOTDIR/usr/share/info $ROOTDIR/usr/share/doc $ROOTDIR/usr/share/locale $ROOTDIR/usr/lib/locale; do
+    [ -e ${DIR} ] && echo "Package validator: ${DIR} is not an allowed directory (man/info/locale)" && RETVAL=1
 done
+
+echo "Validated /usr"
+exit $RETVAL
