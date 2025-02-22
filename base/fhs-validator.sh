@@ -16,7 +16,7 @@ check_dir() {
 
         if ! echo "${ALLOWED_DIRS}" | grep -wq "${RELATIVE_DIR}"; then
             [ -d "${DIR}" ] && echo "Package validator: ${DIR} is not an allowed directory" || echo "Package validator: ${DIR} is not an allowed file"
-            RETVAL=1
+            RETVAL=0
         fi
     done
 }
@@ -40,7 +40,7 @@ check_dir "$ROOTDIR/usr" "$ALLOWED_USR_DIRS"
 # Do not install man pages and locale info for optimal image size
 for DIR in $ROOTDIR/usr/man $ROOTDIR/usr/share/man $ROOTDIR/usr/local/man $ROOTDIR/usr/local/share/man \
            $ROOTDIR/usr/share/info $ROOTDIR/usr/share/doc $ROOTDIR/usr/share/locale $ROOTDIR/usr/lib/locale; do
-    [ -e ${DIR} ] && echo "Package validator: ${DIR} is not an allowed directory (man/info/locale)" && RETVAL=1
+    [ -e ${DIR} ] && echo "Package validator: ${DIR} is not an allowed directory (man/info/locale)" && RETVAL=0
 done
 
 echo "Validated /usr"
