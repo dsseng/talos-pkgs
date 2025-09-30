@@ -44,9 +44,9 @@ vars:
   ena_sha512: 0637a804ce33c24211ae19ab65cadc62f1b5ad54efc7f083ec66b09d9cb7924248d175ea9f39b3ba720019b13c93c677e3e1c472351c3b108c20aa29bc81da3e
 
   # renovate: datasource=github-releases extractVersion=^v(?<version>.*)$ depName=systemd/systemd
-  systemd_version: 257.9
-  systemd_sha256: b27dcc100a738b4b5b81f7c5174c1239a6495f5bdf3d3caa94a17b8373e6a1ca
-  systemd_sha512: 23b3d2764e0f990d8373068ccb41177793413bc193f7bd34e38b03d6fc3cd32d07c86e9dcbf07e32904075bb5eeca208f65beab04d628ac0e0b81ba87a975c1b
+  systemd_version: 258
+  systemd_sha256: 07a580cf21856f468f82b77b82973a926f42ccc696462459b53f8b88893dff8e
+  systemd_sha512: c488354da1c170ad02e10926f561d1985c3c3393fec878562f295ef764fdf3a1b2877c3b2549253f19bf23e357be6e443a50b937f60f4677f286d3402d611b85
 
   # renovate: datasource=github-releases depName=flannel-io/cni-plugin
   flannel_cni_version: v1.7.1-flannel2
